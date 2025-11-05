@@ -7,7 +7,7 @@ license = "MIT"
 authors = ["Vladyslava Spitkovska. <spitkovskavlada@gmail.com>"]
 
 keywords = ["json", "parser", "csv", "weather", "metar"]
-categories = ["data-format", "parser", "command-line-utilities"]
+categories = ["data-processing", "encoding", "command-line-utilities"]
 
 [dependencies]
 pest = "2.7"
