@@ -15,6 +15,7 @@ fn parse_basic() {
 }
 
 //if known words are recognised
+#[test]
 fn parse_known() {
     for s in ["COR", "AUTO", "AMD", "TEMPO", "NOSIG"] {
         assert!(
