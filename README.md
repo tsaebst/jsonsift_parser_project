@@ -9,7 +9,7 @@ I often work with data, and such a parser would make my work easier if, for exam
 I wanted to train a **model** on it or perform **EDA**.
 
 ---
-> [!TIP]
+> [!NOTE]
 > Name selection
 
 “Sift” in ukrainian means *просіювати*.  
@@ -39,19 +39,30 @@ in case the incoming data have a slightly different structure.
 
 ---
 ## Example of transformed data
-
 Below is an example of how the raw aviation weather data looks **after being parsed and converted** into structured CSV format :
 
 ![Example of transformed data](example_transformed_data.png)
  --- 
 ## Getting Started
 
+> [TIP]
+> To download the project use commands:
+```
+bash
+git clone https://github.com/tsaebst/json_sift_parser.git
+cd json_sift_parser
+cargo build
+cargo run
+
+```
+
 To start working, you need to install the project locally  
 *(add detailed installation and run instructions here)*.
 
 To begin, type:
-
+```
 make help
+```
 
 # Project files:
 
@@ -70,6 +81,7 @@ json_sift_parser/
 ├── result.csv              # outout CSV
 └── test.json               # json input data
 ```
+
 
 ## grammar.pest
 The METAR grammar describes how the parser recognizes weather observation strings.  
