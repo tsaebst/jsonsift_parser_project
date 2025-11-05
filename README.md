@@ -9,7 +9,7 @@ I often work with data, and such a parser would make my work easier if, for exam
 I wanted to train a **model** on it or perform **EDA**.
 
 ---
-> [!INFO]
+> [!TIP]
 > Name selection
 
 “Sift” in ukrainian means *просіювати*.  
