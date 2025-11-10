@@ -42,6 +42,7 @@ in case the incoming data have a slightly different structure.
 Below is an example of how the raw aviation weather data looks **after being parsed and converted** into structured CSV format :
 
 ![Example of transformed data](example_transformed_data.png)
+
  --- 
 ## Getting Started
 
@@ -49,10 +50,10 @@ Below is an example of how the raw aviation weather data looks **after being par
 > To download the project use commands:
 ```
 bash
-git clone https://github.com/tsaebst/json_sift_parser.git
+git clone https://github.com/tsaebst/json_sift_parser_upd
 cd json_sift_parser
 cargo build
-cargo run
+cargo install --path .
 
 ```
 
@@ -61,7 +62,8 @@ To start working, you need to install the project locally
 
 To begin, type:
 ```
-make help
+jsonsift --help
+
 ```
 
 # Project files:
@@ -69,17 +71,19 @@ make help
 ```
 json_sift_parser/
 ├── Cargo.toml              # metadata and dependencies
-├── Makefile                # CLI build + tests
+├── Makefile                #CLI build + tests
 ├── README.md               # project doumentation
 ├── config.json             # parser patterns and rules config
 ├── src/
 │   ├── grammar.pest        # Metar grammar defining
-│   ├── lib.rs              # parsing and transformation logic (to be done !!!!)
-│   └── main.rs             # cli entry point (to be done !!!!)
+│   ├── lib.rs              # parsing and transformation logic
+|   |── metar.rs            #logic for metar transformations
+│   └── main.rs             # cli entry point 
 ├── tests/
 │   └── parser_tests.rs     # unit-tests for grammar (to be aaded for parsing logic)
 ├── result.csv              # outout CSV
-└── test.json               # json input data
+├── contents/               # just folder with .png of applied side of my project
+└── test.json               #json input data
 ```
 
 
@@ -130,60 +134,83 @@ To run all unit tests:
 make test
 
 ---
-> [!WARNING]
-> to be done
-## Parsing logic in `lib.rs` 
+## Parsing architecture
 
-This part of program is built on next key ideas:
+The crate is split into two logical parts:
 
-1. Everything starts as JSON  
-2. Complex JSON trees are converted into flat key–value pairs for export.  
-3. Transformation — parsed data are transformed into csv
+- `src/lib.rs` —  JSON → flat map → CSV
+- `src/metar.rs` — METAR grammar, token helpers, and decoding logic
 
 ---
 
-### `parse_json()`
+## `src/lib.rs`
 
-- **Goal:** validate and load incoming API data.  
-- **If successful:** returns a `serde_json::Value` (can be `Object`, `Array`, etc.).  
-- **If failed:** returns a `ParseError::JsonError`.
+My parser tries to be as flexible as it can, so I tried to implement logic which can work with variations of Meatar data. 
 
-### `print_structure()`
-Recursively prints the internal structure of a JSON value.  
-Used for inspeting input data and understanding its nesting.
+* `parse_json()`
+Parses input string as JSON using `serde_json::from_str`
 
-### `flatten_json()`
-Flattens a nested JSON object into simple key–value pairs.  
-When it finds `"rawOb"` (a raw METAR string), it automatically decodes it using `parse_raw_ob`.
+* `convert_to_csv()`
+gets JSON object or array. flattens each entry, collects all keys as CSV headers, and writes rows via `csv::Writer` using sorted columns
 
-### `convert_to_csv()`
-Takes structured JSON and produces a CSV string.
+* `flatten()`
+Recursively walks though objects, arrays, scalars in json, builds indexed keys, and redirects string vals to `parse_scalar`
 
-### `parse_raw_ob()`
-
-Parses a single METAR weather string using the grammar in grammar.pest. Recognizes patterns, dechipers them, so that we could separae detected values into different columns.
-
-### ParseError
-
-* JsonError — invalid or malformed JSON
-* StructureError — grammar parsing or format mismatch
-
+* `parse_scalar()`
+Normalizes str, tries to decode it as METAR via `metar::decode_metar`. if not - tokenizes and uses simple metar patterns or creates `token_n` columns
 
 ---
-> [!WARNING]
-> to be done
 
-## MAIN file
+## `src/metar.rs`
 
-The `main.rs` file defines the **CLI interface** and the high-level program flow.  
-Its main goal is to connect logic from `lib.rs` with  user commands.
+* `SiftParser`
+Pest-generated parser using `grammar.pest` rules for METAR reports.
 
-Before executing any of the commands, the program uses functions from `lib.rs`  to perform all data handling.
+* `decode_metar()`
+Parses a full METAR string with `SiftParser`, walks through parse tree, and returns a flat map of normalized METAR fields/`None`
 
-As a concept for now, but a plan for the future i might add: 
-- Loads a configuration file (`config.json`) if available.
+* `visit_metar()`
+visits Pest parse pairs, matches basic rules, and fills the output map by using `apply_pattern` where possible 
 
+* `complex_key_value()`
+Splits a random string into tokens by whitespace and basic separators before pattern detection
 
+* `is_code_like_token()` / `all_tokens_code_like()`
+Detects whether tokens look like uppercase/number codes to decide if there's a pattern
+
+* `SimplePattern`
+enum for recognized token types `TempDew`, `Wind`, `Pressure`, `Time`, `Visibility`, `Cloud`, `FlightCategory`.
+
+* `holds_pattern_value()`
+Classifies a single token into one of the `SimplePattern` variants
+
+* `apply_pattern()`
+Expands a recognized pattern token into one or more well-named columns 
+
+* `norm()`
+Normalizes raw text
+---
+
+## Error handling
+
+- JSON issues like invalid syntax, wrong encodin become `ParseError::Json`.
+- Structural problems likeCSV write failures,wierd shapes become `ParseError::Structure`.
+
+---
+## `main.rs` – CLI entrypoint
+
+The `main.rs` file defines the **command-line interface** and connects user commands with the core logic from `lib.rs`.
+
+### What it does now
+
+- Uses **clap** to expose subcommands:
+  - `decode <file> [-o, --output <path>]`
+    - Reads a JSON file from disk
+    - Calls `parse_json()` from `lib.rs` to validate and load it
+    - Calls `convert_to_csv()` to flatten and transform the data into CSV.
+    - Prints the CSV to `stdout` or writes it to the specified `--output` file
+  - `credits`
+    - Prints project name, author, short technical description, and tech stack.
 
 ## How to run
 
@@ -197,8 +224,26 @@ cargo run
 
 - **Parse and save**
 ```
-make decode FILE=test.json OUT=result.csv CONFIG=config.json
+jsonsift decode test.json --output result.csv
+
 ```
+
+---
+## Examples of EDA with dataset my parser made:
+
+* Rose of wind grpah:
+
+![Rose of wind](rose_plot.png)
+
+* Correlation plot:
+
+![Correlation plot](corr_plot.png)
+
+* Parametres ratio pictured on the world map:
+
+![Map plot](map_plot.png)
+
+ --- 
 
 - **Credits**
 ```

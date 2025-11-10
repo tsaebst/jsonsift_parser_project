@@ -1,46 +1,43 @@
-.PHONY: all decode inspect test
+.PHONY: help all decode convert inspect test fmt clippy proj_info clean
+
+FILE ?= test.json
+OUT  ?= result.csv
 
 all: test
 
 help:
 	@echo "Makefile commands:"
-	@echo "  make decode FILE=<input.json>        - Decode Metar from JSON file"
-	@echo "  make inspect FILE=<input.json>       - Inspect structure of JSON"
-	@echo "  make save FILE=<input.json> OUT=<output.csv> - Parse and save to CSV"
-	@echo "  make test                            - Run tests" 
-	@echo "  make proj_info FILE=<input.json>  - Show project genral info"
-	@echo "  make fmt                             - Format the code viarustfmt"
-	@echo "  make clippy                          - Run clippy linter on the code"
+	@echo "  make decode FILE=<input.json> OUT=<output.csv>  - Decode & save CSV to file"
+	@echo "  make proj_info                                  - Show project general info"
+	@echo "  make test                                       - Run tests"
+	@echo "  make fmt                                        - Format the code via rustfmt"
+	@echo "  make clippy                                     - Run clippy linter on the code"
+	@echo "  make clean                                      - Clean build artifacts"
 
 proj_info:
 	@echo "Project general info:"
 	@cargo read-manifest | jq -r '"Name: \(.name)\nVersion: \(.version)\nEdition: \(.edition)\nDescription: \(.description)\nLicense: \(.license)\nAuthor(s): \(.authors | join(", "))"'
 
-
-# decode for convertion json through metar rules to csv
+# save+decode
 decode:
-	@echo "Decoding METAR from JSON..."
-	cargo run -- convert $(FILE)
+	@echo "→ Decoding & saving: $(FILE) -> $(OUT)"
+	@[ -n "$(dir $(OUT))" ] && mkdir -p "$(dir $(OUT))" || true
+	@rm -f "$(OUT)"
+	cargo run --bin json_sift_parser -- decode "$(FILE)" --output "$(OUT)"
+	@echo "→ Written:" && ls -l "$(OUT)" || true
 
-# json structure
-inspect:
-	@echo "Inspecting structure of JSON file..."
-	cargo run -- inspect $(FILE)
 
 test:
 	cargo test
-	
-# parse and save to CSV
-# make save FILE=test.json OUT=out.csv
-save:
-	@echo "Parsing and saving to CSV..."
-	cargo run -- decode $(FILE) --output $(OUT)
 
-#also as you required:
 fmt:
-	@echo "Formatting code..."
+	@echo "→ Formatting code..."
 	cargo fmt --all
 
 clippy:
-	@echo "Running clippy..."
+	@echo "→ Running clippy..."
 	cargo clippy -- -D warnings
+
+clean:
+	cargo clean
+	@echo "→ Cleaned target/"

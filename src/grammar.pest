@@ -11,13 +11,13 @@ time = { ASCII_DIGIT{6} ~ "Z" }
 
 // station is 4 chars uppercase
 station = { SOI ~ ASCII_UPPER_ALPHA{4} ~ EOI }
+// station = { ASCII_UPPER_ALPHA{4} }
 
-// expected wind format is DDDSS(GGG)?(KT|MPS), so:
+// wind format is DDDSS(GGG)?(KT|MPS)
 wind_dir= {ASCII_DIGIT{3}} // 3 digits
 wind_speed= { ASCII_DIGIT{2,3} } // 2 or 3 digits
 wind_gust = {"G"~ASCII_DIGIT{2,3} } // optional G+num
 wind_units= {"KT" | "MPS"}
-
 wind = {wind_dir~wind_speed ~ wind_gust?~wind_units}//? baceuse might be absent
 
 // visibility for abbreviations+nums
@@ -32,8 +32,8 @@ cloud_alt = { ASCII_DIGIT{3} } //altitude
 clouds = {cloud_cover~cloud_alt | "CLR" | "SKC"}//cloud type + altitude or clear
 
 
-temp = { "M"? ~ ASCII_DIGIT{2} } //temp (M if minus)
-dew = { "M"? ~ ASCII_DIGIT{2} } //dew point (M if minus)
+temp = { "M"? ~ ASCII_DIGIT{2} } //temp M if minus
+dew = { "M"? ~ ASCII_DIGIT{2} } //dew point 
 temp_dew = { temp ~ "/" ~ dew } // temp/dew point
 
 // pressure A + 4 dig
