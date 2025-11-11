@@ -1,3 +1,5 @@
+#![doc = include_str!("../docs.md")]
+
 mod metar;
 pub use metar::{Rule, SiftParser};
 use csv::WriterBuilder;
