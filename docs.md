@@ -44,17 +44,26 @@ jsonsift --help
 Detailed pipeline of my padser is divided into 2 parts: lib.rs and metar.rs for metar part.
 It can be displayed as :
 
+## Processing pipeline
+
+```
 JSON input
-*  -> parse_json
-*  ->flatten
-*  -> parse_scalar
-*      -> Metar data:
-*          decode_metar -> SiftParser ->visit_metar -> SimplePattern -> apply_pattern ->normalized METAR fields
-*      -> not Metar:
-*          heuristics or token_n
-*  -> merge 
-*  -> convert_to_csv
-*  -> CSV output
+  -> parse_json
+  -> flatten
+  -> parse_scalar
+      -> if METAR-like:
+          -> decode_metar
+          -> SiftParser
+          -> visit_metar
+          -> SimplePattern
+          -> apply_pattern
+          -> normalized METAR fields
+      -> else (not METAR):
+          -> heuristics / token_n
+  -> merge flat maps
+  -> convert_to_csv
+  -> CSV output
+```
 
 
 
