@@ -251,7 +251,7 @@ cargo run -- credits
 
 ```
 
-**Crates.io** – [check it out](https://crates.io/crates/json_sift_parser)
+**Crates.io** – [check it out](https://crates.io/crates/json_sift))
 
 ## Author
 **Vladyslava Spitkovska** – [GitHub](https://github.com/tsaebst)
