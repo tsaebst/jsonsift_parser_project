@@ -51,15 +51,15 @@ JSON input
   -> parse_json
   -> flatten
   -> parse_scalar
-      -> if METAR-like:
+      -> METAR data:
           -> decode_metar
           -> SiftParser
           -> visit_metar
           -> SimplePattern
           -> apply_pattern
           -> normalized METAR fields
-      -> else (not METAR):
-          -> heuristics / token_n
+      -> else:
+          -> heuristics or token_n
   -> merge flat maps
   -> convert_to_csv
   -> CSV output
